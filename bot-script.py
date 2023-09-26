@@ -1,19 +1,14 @@
-# import the necessary packages
-from collections import namedtuple
-Contact = namedtuple('Contact', ['name', 'phone'])
-
 # list of global functions used in multiple functions
-global_dict = dict()
+global address_book, flag
+address_book = {}
 flag = True # flags is responsible for continuing the while loop. If flag is set to False, the loop ends
 
 def input_error(func):
-    def check_error(*args):
+    def check_error(*args, **kwargs):
         try: 
-            out = func(*args)
-            return out
+            return func(*args, **kwargs)
         except KeyError:
-            name = [*args]
-            return f"I haven't found {name[0].capitalize()} in the phonebook. Please enter a valid name."
+            return f"I haven't found this name in the phonebook. Please enter a valid name."
         except TypeError:
             return 'Please enter a phone number after the name.'    
     return check_error
@@ -24,84 +19,77 @@ def parse_input(input):
 
 @input_error
 def get_handler(command):
-    try:
-        assert command in ['hello', 'add', 'change', 'phone', 'show', 'good', 'close', 'exit']
-        dct = {
-        # 'ask_for_input' : ask_for_input,
+    global command_dict
+    if command in ['hello', 'add', 'change', 'phone', 'show', 'goodbye', 'close', 'exit']:
+        command_dict = {
         'hello' : hello,
         'add' : add_contact,
         'change' : change_contact,
         'phone' : phone_show,
         'show' : show_all,
-        'good' : end_bot,
+        'goodbye' : end_bot,
         'close' : end_bot,
         'exit' : end_bot
         }
-        return dct[command]
-    except AssertionError:
-        return "Valid commands are: hello, add ..., change ..., phone ...,; show all; good bye, close, exit."
+        return command_dict[command]
+    else:
+        return f"Valid commands are: {', '.join(command_dict.keys())}."
 
     
 def hello():
     return 'How can I help you?'
 
 @input_error
-def add_contact(*name_phone):
-    global global_dict
+def add_contact(name, phone):
     
-    contact = Contact(*name_phone)
-    contact = Contact(contact.name.capitalize(), contact.phone)
+    name = name.capitalize()
 
     # check if the input name alredy exists in the phonebook
-    if contact.name in global_dict.keys():
-        return f"There is already {contact.name} in the phonebook. Please enter a different name."
+    if name in address_book.keys():
+        return f"There is already {name} in the phonebook. Please enter a different name."
     # check if the input phone number alredy exists in the phonebook
-    elif contact.phone in global_dict.values():
-        return f"Thre is already {contact.phone} in the phonebook. Please enter a different phone number."
+    elif phone in address_book.values():
+        return f"There is already {phone} in the phonebook. Please enter a different phone number."
     else:
-        global_dict[contact.name] = contact.phone
-        return f'{contact.name} has been added.'
+        address_book[name] = phone
+        return f'{name} has been added.'
     
 
 @input_error
-def change_contact(*existing_name_new_phone):
-    global global_dict
+def change_contact(existing_name, new_phone):
 
-    contact = Contact(*existing_name_new_phone)
-    contact = Contact(contact.name.capitalize(), contact.phone)
+    existing_name = existing_name.capitalize()
 
     # check if the input phone number alredy exists in the phonebook
-    if contact.phone in global_dict.values():
-        return f"There is already {contact.phone} in the phonebook. It belongs to {[k for k, v in global_dict.items() if v == contact.phone][0]}."
+    if new_phone in address_book.values():
+        return f"There is already {new_phone} in the phonebook. It belongs to {[k for k, v in address_book.items() if v == new_phone][0]}."
     else:
-        old_phone = global_dict[contact.name]
+        old_phone = address_book[existing_name]
         # set the new phone number to the existing name
-        global_dict[contact.name] = contact.phone
-        return f"The phone number of {contact.name} has been updated.\n{contact.name}'s old number was {old_phone}.\n{contact.name}'s new phone number is {global_dict[contact.name]}."
+        address_book[existing_name] = new_phone
+        return f"The phone number of {existing_name} has been updated.\n{existing_name}'s old number was {old_phone}.\n{existing_name}'s new phone number is {address_book[existing_name]}."
 
 @input_error
 def phone_show(name):
-    global global_dict
 
     name = name.capitalize()
-    respective_phone = global_dict[name]
+    respective_phone = address_book[name]
     print('-'*43)
     print("|{0:^20}|{1:^20}|".format(name, respective_phone))
     print('-'*43)
     
 
 def show_all(*args):
-    try:
-        *n, = args
-        assert len(n) == 0 or n == ['all']
-        global global_dict
+    *n, = args
+    if len(n) == 0 or n == ['all']:
+        global address_book
         print("The full phonebook is:")
         print("|{0:^20}|{1:^20}|".format('name', 'phone number'))
         print("-"*43)
-        for k, v in global_dict.items():
+        for k, v in address_book.items():
             print("|{0:^20}|{1:^20}|".format(k, v))
-    except AssertionError:
-        return "Valid commands are: hello, add ..., change ..., phone ...,; show all; good bye, close, exit."
+    else:
+        return f"Valid commands are: {', '.join(command_dict.keys())}."
 
     
 
@@ -113,7 +101,7 @@ def end_bot():
 def main():
     
     print(
-        'Hello! I am a bot-assistant.\nI accept the following commands: hello, add ..., change ..., phone ...; show all; good bye, close, exit.'
+        f"Hello! I am a bot-assistant.\nI accept the following commands: hello, add ..., change ..., phone ...; show all; good bye, close, exit."
           )
     # actual_command = 'ask_for_input'
     # optional_args = None
@@ -123,7 +111,7 @@ def main():
 
         comm, data = parse_input(user_input)
         handler = get_handler(comm)
-        if type(handler) is str:
+        if isinstance(handler, str):
             print(handler)
         else: 
             result = handler(*data)
