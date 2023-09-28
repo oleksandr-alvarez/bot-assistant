@@ -1,7 +1,9 @@
 # list of global functions used in multiple functions
-global address_book, flag
 address_book = {}
 flag = True # flags is responsible for continuing the while loop. If flag is set to False, the loop ends
+
+
+
 
 def input_error(func):
     def check_error(*args, **kwargs):
@@ -19,21 +21,9 @@ def parse_input(input):
 
 @input_error
 def get_handler(command):
-    global command_dict
-    if command in ['hello', 'add', 'change', 'phone', 'show', 'goodbye', 'close', 'exit']:
-        command_dict = {
-        'hello' : hello,
-        'add' : add_contact,
-        'change' : change_contact,
-        'phone' : phone_show,
-        'show' : show_all,
-        'goodbye' : end_bot,
-        'close' : end_bot,
-        'exit' : end_bot
-        }
-        return command_dict[command]
-    else:
-        return f"Valid commands are: {', '.join(command_dict.keys())}."
+    if command in command_list:
+        return command_list[command]
+    return f"Valid commands are: {', '.join(command_list.keys())}."
 
     
 def hello():
@@ -45,7 +35,7 @@ def add_contact(name, phone):
     name = name.capitalize()
 
     # check if the input name alredy exists in the phonebook
-    if name in address_book.keys():
+    if name in address_book:
         return f"There is already {name} in the phonebook. Please enter a different name."
     # check if the input phone number alredy exists in the phonebook
     elif phone in address_book.values():
@@ -80,16 +70,16 @@ def phone_show(name):
     
 
 def show_all(*args):
-    *n, = args
-    if len(n) == 0 or n == ['all']:
-        global address_book
+    *extra_args, = args
+    if len(extra_args) == 0 or extra_args == ['all']:
+
         print("The full phonebook is:")
         print("|{0:^20}|{1:^20}|".format('name', 'phone number'))
         print("-"*43)
         for k, v in address_book.items():
             print("|{0:^20}|{1:^20}|".format(k, v))
     else:
-        return f"Valid commands are: {', '.join(command_dict.keys())}."
+        return f"Valid commands are: {', '.join(command_list.keys())}."
 
     
 
@@ -97,14 +87,24 @@ def end_bot():
     global flag
     flag = False
 
+command_list = {
+    'hello' : hello,
+    'add' : add_contact,
+    'change' : change_contact,
+    'phone' : phone_show,
+    'show' : show_all,
+    'goodbye' : end_bot,
+    'close' : end_bot,
+    'exit' : end_bot
+    }
+
 # main function
 def main():
     
     print(
         f"Hello! I am a bot-assistant.\nI accept the following commands: hello, add ..., change ..., phone ...; show all; good bye, close, exit."
           )
-    # actual_command = 'ask_for_input'
-    # optional_args = None
+
     while flag:
 
         user_input = input('Please enter one of the valid commands: ').lower().strip()
@@ -115,10 +115,8 @@ def main():
             print(handler)
         else: 
             result = handler(*data)
-            if result is not None:
+            if result :
                 print(result)
-            else:
-                continue
 
 
 
