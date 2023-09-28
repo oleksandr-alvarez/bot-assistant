@@ -70,9 +70,8 @@ def phone_show(name):
     
 
 def show_all(*args):
-    *extra_args, = args
-    if len(extra_args) == 0 or extra_args == ['all']:
-
+    *redundant_args, = args
+    if not redundant_args or redundant_args == ['all']:
         print("The full phonebook is:")
         print("|{0:^20}|{1:^20}|".format('name', 'phone number'))
         print("-"*43)
